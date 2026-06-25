@@ -6,12 +6,8 @@ import com.roomie.belottracker.data.entities.GameStatus
 import com.roomie.belottracker.data.entities.TrumpSuit
 
 class Converters {
-    @TypeConverter
-    fun fromZvanjeList(list: List<String>): String = list.joinToString(",")
-
-    @TypeConverter
-    fun toZvanjeList(data: String): List<String> = if (data.isEmpty()) emptyList() else data.split(",")
-
+    @TypeConverter fun fromZvanjeList(list: List<String>): String = list.joinToString(",")
+    @TypeConverter fun toZvanjeList(data: String): List<String> = if (data.isEmpty()) emptyList() else data.split(",")
 
     @TypeConverter fun fromGameMode(m: GameMode): String = m.name
     @TypeConverter fun toGameMode(s: String): GameMode = GameMode.valueOf(s)

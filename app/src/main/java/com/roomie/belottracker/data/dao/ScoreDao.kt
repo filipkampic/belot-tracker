@@ -20,4 +20,7 @@ interface ScoreDao {
 
     @Query("SELECT * FROM scores WHERE roundId IN (SELECT id FROM rounds WHERE gameId = :gameId)")
     fun getScoresForGame(gameId: Long): Flow<List<Score>>
+
+    @Query("SELECT * FROM scores WHERE roundId = :roundId")
+    suspend fun deleteScoresForRound(roundId: Long)
 }
