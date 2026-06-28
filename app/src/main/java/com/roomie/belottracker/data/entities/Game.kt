@@ -14,5 +14,6 @@ data class Game(
     val targetScore: Int,
     val useZvanjeBela: Boolean,
     val status: GameStatus = GameStatus.ONGOING,
+    val participantIds: List<Long>,
     val winnerParticipantId: Long? = null
 )

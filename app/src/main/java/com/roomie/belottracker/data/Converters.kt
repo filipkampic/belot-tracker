@@ -17,4 +17,7 @@ class Converters {
 
     @TypeConverter fun fromTrumpSuit(t: TrumpSuit): String = t.name
     @TypeConverter fun toTrumpSuit(s: String): TrumpSuit = TrumpSuit.valueOf(s)
+
+    @TypeConverter fun fromLongList(list: List<Long>): String = list.joinToString(",")
+    @TypeConverter fun toLongList(data: String): List<Long> = if (data.isEmpty()) emptyList() else data.split(",").map { it.toLong() }
 }

@@ -16,7 +16,8 @@ import com.roomie.belottracker.data.entities.Team
 
 @Database(
     entities = [Player::class, Team::class, Game::class, Round::class, Score::class],
-    version = 1
+    version = 1,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class BelotDatabase : RoomDatabase() {
