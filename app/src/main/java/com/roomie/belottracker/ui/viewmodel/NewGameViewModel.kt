@@ -6,7 +6,6 @@ import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.Player
 import com.roomie.belottracker.repository.GameRepository
 import com.roomie.belottracker.repository.PlayerRepository
-import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +17,7 @@ data class NewGameUiState(
     val mode: GameMode = GameMode.ONE_V_ONE,
     val targetScore: Int = 501,
     val useZvanjeBela: Boolean = false,
-    val selectedPlayerIds: List<Long> = emptyList(),
+    val selectedPlayers: List<Player> = emptyList(),
     val allPlayers: List<Player> = emptyList()
 )
 
@@ -42,7 +41,7 @@ class NewGameViewModel @Inject constructor(
     fun selectMode(mode: GameMode) {
         _uiState.value = _uiState.value.copy(
             mode = mode,
-            selectedPlayerIds = emptyList(),
+            selectedPlayers = emptyList(),
             targetScore = if (mode == GameMode.ONE_V_ONE) 501 else 1001
         )
     }
@@ -63,27 +62,48 @@ class NewGameViewModel @Inject constructor(
         }
     }
 
-    fun togglePlayerSelection(playerId: Long) {
-        val current = _uiState.value.selectedPlayerIds
-        val max = requiredPlayerCount()
-        val updated = when {
-            current.contains(playerId) -> current - playerId
-            current.size < max -> current + playerId
-            else -> current
-        }
-
-        _uiState.value = _uiState.value.copy(selectedPlayerIds = updated)
-    }
-
-    fun addNewPlayer(playerName: String, onCreated: (Long) -> Unit) {
+    fun addNewPlayer(playerName: String) {
         if (playerName.isBlank()) return
         viewModelScope.launch {
             val id = playerRepository.insertPlayer(Player(name = playerName.trim()))
-            onCreated(id)
+            val newPlayer = playerRepository.getPlayerById(id)
+
+            if (newPlayer != null) {
+                _uiState.value = _uiState.value.copy(
+                    selectedPlayers = _uiState.value.selectedPlayers + newPlayer
+                )
+            }
         }
     }
 
-    fun canStartGame(): Boolean = _uiState.value.selectedPlayerIds.size == requiredPlayerCount()
+    fun addExistingPlayer(player: Player) {
+        _uiState.value = _uiState.value.copy(
+            selectedPlayers = _uiState.value.selectedPlayers + player
+        )
+    }
+
+    fun removePlayerFromGame(player: Player) {
+        _uiState.value = _uiState.value.copy(
+            selectedPlayers = _uiState.value.selectedPlayers - player
+        )
+    }
+
+    fun editPlayer(player: Player) {
+        viewModelScope.launch {
+            playerRepository.updatePlayer(player)
+
+            _uiState.value = _uiState.value.copy(
+                selectedPlayers = _uiState.value.selectedPlayers.map {
+                    if (it.id == player.id) player else it
+                },
+                allPlayers = _uiState.value.allPlayers.map {
+                    if (it.id == player.id) player else it
+                }
+            )
+        }
+    }
+
+    fun canStartGame(): Boolean = _uiState.value.selectedPlayers.size == requiredPlayerCount()
 
     fun createGame(onGameCreated: (Long) -> Unit) {
         val state = _uiState.value
@@ -94,7 +114,7 @@ class NewGameViewModel @Inject constructor(
                 mode = state.mode,
                 targetScore = state.targetScore,
                 useZvanjeBela = state.useZvanjeBela,
-                selectedPlayerIds = state.selectedPlayerIds,
+                selectedPlayers = state.selectedPlayers,
                 playerNamesById = namesById
             )
             onGameCreated(gameId)

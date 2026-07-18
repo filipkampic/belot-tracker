@@ -58,7 +58,8 @@ fun ModeSegmentedControl(selectedMode: GameMode, onModeSelected: (GameMode) -> U
             SegmentedButton(
                 selected = selectedMode == mode,
                 onClick = { onModeSelected(mode) },
-                shape = SegmentedButtonDefaults.itemShape(index = i, count = modes.size)
+                shape = SegmentedButtonDefaults.itemShape(index = i, count = modes.size),
+                icon = { }
             ) { Text(labels[i]) }
         }
     }

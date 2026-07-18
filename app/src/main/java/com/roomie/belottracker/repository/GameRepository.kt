@@ -8,6 +8,7 @@ import com.roomie.belottracker.data.dao.TeamDao
 import com.roomie.belottracker.data.entities.Game
 import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
+import com.roomie.belottracker.data.entities.Player
 import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.Score
 import com.roomie.belottracker.data.entities.Team
@@ -41,23 +42,23 @@ class GameRepository(
         mode: GameMode,
         targetScore: Int,
         useZvanjeBela: Boolean,
-        selectedPlayerIds: List<Long>,
+        selectedPlayers: List<Player>,
         playerNamesById: Map<Long, String>
     ): Long {
         val participantIds: List<Long> = if (mode == GameMode.TWO_V_TWO) {
             val team1 = Team(
-                player1Id = selectedPlayerIds[0],
-                player2Id = selectedPlayerIds[1],
-                name = "${playerNamesById[selectedPlayerIds[0]]} i ${playerNamesById[selectedPlayerIds[1]]}"
+                player1Id = selectedPlayers[0].id,
+                player2Id = selectedPlayers[1].id,
+                name = "${playerNamesById[selectedPlayers[0].id]} i ${playerNamesById[selectedPlayers[1].id]}"
             )
             val team2 = Team(
-                player1Id = selectedPlayerIds[2],
-                player2Id = selectedPlayerIds[3],
-                name = "${playerNamesById[selectedPlayerIds[2]]} i ${playerNamesById[selectedPlayerIds[3]]}"
+                player1Id = selectedPlayers[2].id,
+                player2Id = selectedPlayers[3].id,
+                name = "${playerNamesById[selectedPlayers[2].id]} i ${playerNamesById[selectedPlayers[3].id]}"
             )
             listOf(teamDao.insert(team1), teamDao.insert(team2))
         } else {
-            selectedPlayerIds
+            selectedPlayers.map { it.id }
         }
 
         val game = Game(
