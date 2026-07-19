@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
@@ -36,13 +34,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.Player
 import com.roomie.belottracker.ui.components.ModeSegmentedControl
@@ -91,12 +89,12 @@ fun NewGameScreen(
             Text("Igrači (${state.selectedPlayers.size}/${viewModel.requiredPlayerCount()})", style = MaterialTheme.typography.titleMedium)
             PlayerPicker(
                 selectedPlayers = state.selectedPlayers,
-                allPlayers = state.allPlayers,
-                onAddNewPlayer = viewModel::addNewPlayer,
-                onAddExistingPlayer = viewModel::addExistingPlayer,
                 onEditPlayer = viewModel::editPlayer,
                 onRemovePlayer = viewModel::removePlayerFromGame
             )
+            Button(onClick = { showAddPlayerDialog = true }) {
+                Text("+ Dodaj igrača")
+            }
 
             Text("Cilj bodova", style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -133,12 +131,41 @@ fun NewGameScreen(
                 onDismissRequest = { showAddPlayerDialog = false },
                 title = { Text("Novi igrač") },
                 text = {
-                    OutlinedTextField(
-                        value = newPlayerName,
-                        onValueChange = { newPlayerName = it },
-                        label = { Text("Ime") },
-                        singleLine = true
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = newPlayerName,
+                            onValueChange = { newPlayerName = it },
+                            label = { Text("Novi igrač") },
+                            singleLine = true
+                        )
+
+                        var expanded by remember { mutableStateOf(false) }
+
+                        Box {
+                            Button(onClick = { expanded = true }) {
+                                Text("Dodaj postojećeg")
+                            }
+
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                state.allPlayers
+                                    .filter { p -> state.selectedPlayers.none { it.id == p.id } }
+                                    .forEach { player ->
+                                        DropdownMenuItem(
+                                            text = { Text(player.name) },
+                                            onClick = {
+                                                viewModel.addExistingPlayer(player)
+                                                expanded = false
+                                                newPlayerName = ""
+                                                showAddPlayerDialog = false
+                                            }
+                                        )
+                                    }
+                            }
+                        }
+                    }
                 },
                 confirmButton = {
                     TextButton(onClick = {
@@ -160,102 +187,47 @@ fun NewGameScreen(
 @Composable
 private fun PlayerPicker(
     selectedPlayers: List<Player>,
-    allPlayers: List<Player>,
-    onAddNewPlayer: (String) -> Unit,
-    onAddExistingPlayer: (Player) -> Unit,
     onEditPlayer: (Player) -> Unit,
     onRemovePlayer: (Player) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         selectedPlayers.forEach { player ->
-            var isEditing by remember { mutableStateOf(false) }
-            var editedName by remember { mutableStateOf(player.name) }
+            key(player.id) {
+                var isEditing by remember(player.id) { mutableStateOf(false) }
+                var editedName by remember(player.id) { mutableStateOf(player.name) }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isEditing) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     TextField(
                         value = editedName,
                         onValueChange = { editedName = it },
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        readOnly = !isEditing
                     )
-                    IconButton(onClick = {
-                        if (editedName.isNotBlank()) {
-                            onEditPlayer(player.copy(name = editedName.trim()))
-                        }
-                        isEditing = false
-                    }) {
-                        Icon(Icons.Default.Check, contentDescription = "Spremi")
-                    }
-                } else {
-                    Text(
-                        text = player.name,
-                        modifier = Modifier.weight(1f),
-                        fontSize = 18.sp
-                    )
-                    IconButton(onClick = { isEditing = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Uredi")
-                    }
-                }
-
-                IconButton(onClick = { onRemovePlayer(player) }) {
-                    Icon(Icons.Default.Close, contentDescription = "Ukloni")
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        var newName by remember { mutableStateOf("") }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextField(
-                value = newName,
-                onValueChange = { newName = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Novi igrač") },
-                singleLine = true
-            )
-
-            IconButton(onClick = {
-                if (newName.isNotBlank()) {
-                    onAddNewPlayer(newName.trim())
-                    newName = ""
-                }
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Dodaj")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        var expanded by remember { mutableStateOf(false) }
-
-        Box {
-            Button(onClick = { expanded = true }) {
-                Text("Dodaj postojećeg")
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                allPlayers
-                    .filter { p -> selectedPlayers.none { it.id == p.id } }
-                    .forEach { player ->
-                        DropdownMenuItem(
-                            text = { Text(player.name) },
-                            onClick = {
-                                onAddExistingPlayer(player)
-                                expanded = false
+                    if (isEditing) {
+                        IconButton(onClick = {
+                            if (editedName.isNotBlank()) {
+                                onEditPlayer(player.copy(name = editedName.trim()))
                             }
-                        )
+                            isEditing = false
+                        }) {
+                            Icon(Icons.Default.Check, contentDescription = "Spremi")
+                        }
+                    } else {
+                        IconButton(onClick = { isEditing = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Uredi")
+                        }
                     }
+
+                    IconButton(onClick = { onRemovePlayer(player) }) {
+                        Icon(Icons.Default.Close, contentDescription = "Ukloni")
+                    }
+                }
             }
         }
     }

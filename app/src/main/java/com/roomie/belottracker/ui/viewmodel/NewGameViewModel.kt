@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -68,9 +69,9 @@ class NewGameViewModel @Inject constructor(
             val id = playerRepository.insertPlayer(Player(name = playerName.trim()))
             val newPlayer = playerRepository.getPlayerById(id)
 
-            if (newPlayer != null) {
+            newPlayer?.let {
                 _uiState.value = _uiState.value.copy(
-                    selectedPlayers = _uiState.value.selectedPlayers + newPlayer
+                    selectedPlayers = _uiState.value.selectedPlayers + it
                 )
             }
         }
@@ -84,7 +85,7 @@ class NewGameViewModel @Inject constructor(
 
     fun removePlayerFromGame(player: Player) {
         _uiState.value = _uiState.value.copy(
-            selectedPlayers = _uiState.value.selectedPlayers - player
+            selectedPlayers = _uiState.value.selectedPlayers.filter { it.id != player.id }
         )
     }
 
@@ -96,9 +97,7 @@ class NewGameViewModel @Inject constructor(
                 selectedPlayers = _uiState.value.selectedPlayers.map {
                     if (it.id == player.id) player else it
                 },
-                allPlayers = _uiState.value.allPlayers.map {
-                    if (it.id == player.id) player else it
-                }
+                allPlayers = playerRepository.getAllPlayers().first()
             )
         }
     }
