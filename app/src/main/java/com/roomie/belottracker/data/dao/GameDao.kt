@@ -42,4 +42,7 @@ interface GameDao {
     @Transaction
     @Query("SELECT * FROM games WHERE id = :gameId")
     suspend fun getGameWithRounds(gameId: Long): GameWithRounds?
+
+    @Query("SELECT * FROM games ORDER BY id DESC LIMIT 1")
+    suspend fun getLastGame(): Game?
 }

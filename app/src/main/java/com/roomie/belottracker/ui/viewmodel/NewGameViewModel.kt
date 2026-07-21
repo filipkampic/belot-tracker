@@ -3,14 +3,11 @@ package com.roomie.belottracker.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.roomie.belottracker.data.entities.GameMode
-import com.roomie.belottracker.data.entities.Player
 import com.roomie.belottracker.repository.GameRepository
-import com.roomie.belottracker.repository.PlayerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,13 +15,11 @@ data class NewGameUiState(
     val mode: GameMode = GameMode.ONE_V_ONE,
     val targetScore: Int = 501,
     val useZvanjeBela: Boolean = false,
-    val selectedPlayers: List<Player> = emptyList(),
-    val allPlayers: List<Player> = emptyList()
+    val players: List<String> = emptyList()
 )
 
 @HiltViewModel
 class NewGameViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository,
     private val gameRepository: GameRepository
 ) : ViewModel() {
 
@@ -33,16 +28,20 @@ class NewGameViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            playerRepository.getAllPlayers().collect { players ->
-                _uiState.value = _uiState.value.copy(allPlayers = players)
+            val lastGame = gameRepository.getLastGame()
+            if (lastGame != null) {
+                _uiState.value = _uiState.value.copy(
+                    players = lastGame.participantNames.toMutableList(),
+                )
             }
         }
     }
 
     fun selectMode(mode: GameMode) {
+        val count = requiredPlayerCount(mode)
         _uiState.value = _uiState.value.copy(
             mode = mode,
-            selectedPlayers = emptyList(),
+            players = List(count) { "" },
             targetScore = if (mode == GameMode.ONE_V_ONE) 501 else 1001
         )
     }
@@ -55,66 +54,32 @@ class NewGameViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(useZvanjeBela = enabled)
     }
 
-    fun requiredPlayerCount(): Int {
-        return when (_uiState.value.mode) {
+    fun requiredPlayerCount(mode: GameMode = _uiState.value.mode): Int {
+        return when (mode) {
             GameMode.ONE_V_ONE -> 2
             GameMode.ONE_V_ONE_V_ONE -> 3
             GameMode.TWO_V_TWO -> 4
         }
     }
 
-    fun addNewPlayer(playerName: String) {
-        if (playerName.isBlank()) return
-        viewModelScope.launch {
-            val id = playerRepository.insertPlayer(Player(name = playerName.trim()))
-            val newPlayer = playerRepository.getPlayerById(id)
-
-            newPlayer?.let {
-                _uiState.value = _uiState.value.copy(
-                    selectedPlayers = _uiState.value.selectedPlayers + it
-                )
-            }
-        }
+    fun editPlayer(index: Int, newName: String) {
+        val updated = _uiState.value.players.toMutableList()
+        while (updated.size <= index) updated.add("")
+        updated[index] = newName
+        _uiState.value = _uiState.value.copy(players = updated)
     }
 
-    fun addExistingPlayer(player: Player) {
-        _uiState.value = _uiState.value.copy(
-            selectedPlayers = _uiState.value.selectedPlayers + player
-        )
-    }
-
-    fun removePlayerFromGame(player: Player) {
-        _uiState.value = _uiState.value.copy(
-            selectedPlayers = _uiState.value.selectedPlayers.filter { it.id != player.id }
-        )
-    }
-
-    fun editPlayer(player: Player) {
-        viewModelScope.launch {
-            playerRepository.updatePlayer(player)
-
-            _uiState.value = _uiState.value.copy(
-                selectedPlayers = _uiState.value.selectedPlayers.map {
-                    if (it.id == player.id) player else it
-                },
-                allPlayers = playerRepository.getAllPlayers().first()
-            )
-        }
-    }
-
-    fun canStartGame(): Boolean = _uiState.value.selectedPlayers.size == requiredPlayerCount()
+    fun canStartGame(): Boolean = _uiState.value.players.count { it.isNotBlank() } == requiredPlayerCount()
 
     fun createGame(onGameCreated: (Long) -> Unit) {
         val state = _uiState.value
         if (!canStartGame()) return
         viewModelScope.launch {
-            val namesById = state.allPlayers.associate { it.id to it.name }
             val gameId = gameRepository.createGame(
                 mode = state.mode,
                 targetScore = state.targetScore,
                 useZvanjeBela = state.useZvanjeBela,
-                selectedPlayers = state.selectedPlayers,
-                playerNamesById = namesById
+                players = state.players
             )
             onGameCreated(gameId)
         }

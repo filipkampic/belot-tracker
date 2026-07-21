@@ -4,22 +4,18 @@ import com.roomie.belottracker.data.dao.GameDao
 import com.roomie.belottracker.data.dao.GameWithRounds
 import com.roomie.belottracker.data.dao.RoundDao
 import com.roomie.belottracker.data.dao.ScoreDao
-import com.roomie.belottracker.data.dao.TeamDao
 import com.roomie.belottracker.data.entities.Game
 import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
-import com.roomie.belottracker.data.entities.Player
 import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.Score
-import com.roomie.belottracker.data.entities.Team
 import com.roomie.belottracker.data.entities.TrumpSuit
 import kotlinx.coroutines.flow.Flow
 
 class GameRepository(
     private val gameDao: GameDao,
     private val roundDao: RoundDao,
-    private val scoreDao: ScoreDao,
-    private val teamDao: TeamDao
+    private val scoreDao: ScoreDao
 ) {
 
     suspend fun insertGame(game: Game) = gameDao.insert(game)
@@ -36,39 +32,26 @@ class GameRepository(
 
     suspend fun getGameWithRounds(gameId: Long): GameWithRounds? = gameDao.getGameWithRounds(gameId)
 
+    suspend fun getLastGame(): Game? {
+        return gameDao.getLastGame()
+    }
+
     suspend fun getScoresForRound(roundId: Long): List<Score> = scoreDao.getScoresForRound(roundId)
 
     suspend fun createGame(
         mode: GameMode,
         targetScore: Int,
         useZvanjeBela: Boolean,
-        selectedPlayers: List<Player>,
-        playerNamesById: Map<Long, String>
+        players: List<String>
     ): Long {
-        val participantIds: List<Long> = if (mode == GameMode.TWO_V_TWO) {
-            val team1 = Team(
-                player1Id = selectedPlayers[0].id,
-                player2Id = selectedPlayers[1].id,
-                name = "${playerNamesById[selectedPlayers[0].id]} i ${playerNamesById[selectedPlayers[1].id]}"
-            )
-            val team2 = Team(
-                player1Id = selectedPlayers[2].id,
-                player2Id = selectedPlayers[3].id,
-                name = "${playerNamesById[selectedPlayers[2].id]} i ${playerNamesById[selectedPlayers[3].id]}"
-            )
-            listOf(teamDao.insert(team1), teamDao.insert(team2))
-        } else {
-            selectedPlayers.map { it.id }
-        }
-
         val game = Game(
             date = System.currentTimeMillis(),
             mode = mode,
             targetScore = targetScore,
             useZvanjeBela = useZvanjeBela,
-            participantIds = participantIds,
+            participantNames = players,
             status = GameStatus.ONGOING,
-            winnerParticipantId = null
+            winnerName = null
         )
         return gameDao.insert(game)
     }
@@ -95,11 +78,11 @@ class GameRepository(
         }
     }
 
-    suspend fun finishGame(gameId: Long, winnerParticipantId: Long) {
+    suspend fun finishGame(gameId: Long, winnerName: String) {
         val game = gameDao.getGameById(gameId) ?: return
         val updatedGame = game.copy(
             status = GameStatus.FINISHED,
-            winnerParticipantId = winnerParticipantId
+            winnerName = winnerName
         )
         gameDao.update(updatedGame)
     }
