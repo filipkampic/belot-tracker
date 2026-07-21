@@ -76,42 +76,42 @@ fun HomeScreen(
                 Text("Nedavne igre")
                 TextButton(onClick = onHistoryClick) { Text("Sva povijest") }
             }
-        }
 
-        if (recentGames.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    "Još nema igara.\nPritisni 'Nova igra' za početak.",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(contentPadding = PaddingValues(16.dp)) {
-                items(recentGames) { game ->
-                    Card(
-                        onClick = { onGameClick(game.id) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(
-                                formatGameDate(game.date),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+            if (recentGames.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        "Još nema igara.\nPritisni 'Nova igra' za početak.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(contentPadding = PaddingValues(16.dp)) {
+                    items(recentGames) { game ->
+                        Card(
+                            onClick = { onGameClick(game.id) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
                                 Text(
-                                    modeLabel(game.mode),
-                                    style = MaterialTheme.typography.titleMedium
+                                    formatGameDate(game.date),
+                                    style = MaterialTheme.typography.labelMedium
                                 )
-                                Text(
-                                    if (game.status == GameStatus.FINISHED) "Završeno" else "U tijeku",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        modeLabel(game.mode),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        if (game.status == GameStatus.FINISHED) "Završeno" else "U tijeku",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
