@@ -8,12 +8,12 @@ fun Score.total(): Int {
     return basePoints + zvanjeSum + belaBonus
 }
 
-fun calculateGameTotals(scores: List<Score>): Map<Long, Int> {
-    val gameTotals = mutableMapOf<Long, Int>()
+fun calculateGameTotals(scores: List<Score>): Map<Int, Int> {
+    val gameTotals = mutableMapOf<Int, Int>()
     for (score in scores) {
-        val participantId = score.participantId
-        val total = gameTotals.getOrDefault(participantId, 0) + score.total()
-        gameTotals[participantId] = total
+        val participantIndex = score.participantIndex
+        val total = gameTotals.getOrDefault(participantIndex, 0) + score.total()
+        gameTotals[participantIndex] = total
     }
 
     return gameTotals

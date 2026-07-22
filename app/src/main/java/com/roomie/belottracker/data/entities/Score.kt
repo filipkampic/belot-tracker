@@ -13,7 +13,7 @@ import androidx.room.PrimaryKey
 data class Score(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val roundId: Long,
-    val participantId: Long,
+    val participantIndex: Int,
     val basePoints: Int,
     val zvanjeEvents: List<String> = emptyList(),
     val bela: Boolean = false

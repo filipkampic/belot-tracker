@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.Score
 import com.roomie.belottracker.data.entities.TrumpSuit
-import com.roomie.belottracker.util.Participant
 import com.roomie.belottracker.util.total
 
 @Composable
@@ -106,7 +105,7 @@ fun ZvanjeChipRow(
 fun RoundRow(
     roundNumber: Int,
     trump: TrumpSuit,
-    participants: List<Participant>,
+    participantNames: List<String>,
     scores: List<Score>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -118,8 +117,8 @@ fun RoundRow(
         Text(roundNumber.toString(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(28.dp))
         Text(trump.displayName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(72.dp))
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
-            participants.forEach { p ->
-                val total = scores.find { it.participantId == p.id }?.total() ?: 0
+            participantNames.forEachIndexed { index, _ ->
+                val total = scores.find { it.participantIndex == index }?.total() ?: 0
                 Text(total.toString(), style = MaterialTheme.typography.bodyMedium)
             }
         }
