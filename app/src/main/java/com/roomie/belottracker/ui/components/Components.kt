@@ -2,12 +2,14 @@ package com.roomie.belottracker.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -65,11 +67,11 @@ fun ModeSegmentedControl(selectedMode: GameMode, onModeSelected: (GameMode) -> U
 }
 
 @Composable
-fun SuitPicker(selectedSuid: TrumpSuit?, onSuitSelected: (TrumpSuit) -> Unit, modifier: Modifier = Modifier) {
+fun SuitPicker(selectedSuit: TrumpSuit?, onSuitSelected: (TrumpSuit) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         TrumpSuit.entries.forEach { suit ->
             FilterChip(
-                selected = selectedSuid == suit,
+                selected = selectedSuit == suit,
                 onClick = { onSuitSelected(suit) },
                 label = { Text(suit.displayName) }
             )
@@ -98,6 +100,26 @@ fun ZvanjeChipRow(
             onClick = onBelaToggle,
             label = { Text("Bela") }
         )
+    }
+}
+
+@Composable
+fun TotalsCard(participantNames: List<String>, totals: Map<Int, Int>, modifier: Modifier = Modifier) {
+    Card(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            participantNames.forEachIndexed { index, name ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                    Text(
+                        (totals[index] ?: 0).toString(),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+            }
+        }
     }
 }
 
