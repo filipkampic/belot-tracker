@@ -19,7 +19,7 @@ fun calculateGameTotals(scores: List<Score>): Map<Int, Int> {
     return gameTotals
 }
 
-fun checkWinner(totals: Map<Long, Int>, targetScore: Int): Long? {
+fun checkWinner(totals: Map<Int, Int>, targetScore: Int): Int? {
     val leader = totals.maxByOrNull { it.value } ?: return null
     return if (leader.value >= targetScore) leader.key else null
 }
