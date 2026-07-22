@@ -1,11 +1,14 @@
 package com.roomie.belottracker.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.roomie.belottracker.ui.screens.HomeScreen
 import com.roomie.belottracker.ui.screens.NewGameScreen
+import com.roomie.belottracker.ui.screens.ScoringScreen
 
 @Composable
 fun BelotNavHost() {
@@ -24,6 +27,15 @@ fun BelotNavHost() {
             NewGameScreen(
                 onGameCreated = { gameId -> navController.navigate("game/$gameId") { popUpTo("home") } },
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("game/{gameId}", arguments = listOf(navArgument("gameId") { type = NavType.LongType })) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getLong("gameId") ?: 0L
+            ScoringScreen(
+                gameId = gameId,
+                onBack = { navController.popBackStack() },
+                onWinner = { gId, winnerName -> navController.navigate("winner/$gId/$winnerName") }
             )
         }
     }
