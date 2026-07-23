@@ -86,7 +86,10 @@ fun HomeScreen(
                     )
                 }
             } else {
-                LazyColumn(contentPadding = PaddingValues(16.dp)) {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(recentGames) { game ->
                         Card(
                             onClick = { onGameClick(game.id) },
