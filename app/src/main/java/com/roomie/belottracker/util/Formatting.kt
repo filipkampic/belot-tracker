@@ -15,6 +15,7 @@ fun modeLabel(mode: GameMode): String = when (mode) {
 }
 
 fun targetScoreOptions(mode: GameMode): List<Int> = when (mode) {
-    GameMode.ONE_V_ONE -> listOf(251, 501, 751)
-    else -> listOf(501, 1001, 1501)
+    GameMode.ONE_V_ONE -> listOf(301, 501, 701)
+    GameMode.ONE_V_ONE_V_ONE -> listOf(501, 701, 1001)
+    else -> listOf(701, 1001, 1501)
 }
