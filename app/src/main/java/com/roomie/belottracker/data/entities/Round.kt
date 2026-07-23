@@ -21,5 +21,6 @@ data class Round(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val gameId: Long,
     val roundNumber: Int,
-    val trump: TrumpSuit
+    val trump: TrumpSuit,
+    val trumpPickerIndex: Int
 )

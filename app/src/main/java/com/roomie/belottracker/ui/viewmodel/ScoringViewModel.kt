@@ -33,6 +33,7 @@ data class ScoringUiState(
     val scoresByRound: Map<Long, List<Score>> = emptyMap(),
     val totals: Map<Int, Int> = emptyMap(),
     val selectedTrump: TrumpSuit? = null,
+    val trumpPickerIndex: Int? = null,
     val roundInputs: List<ParticipantScoreInput> = emptyList(),
     val editingRound: Round? = null
 )
@@ -87,6 +88,10 @@ class ScoringViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedTrump = suit)
     }
 
+    fun setTrumpPickerIndex(index: Int) {
+        _uiState.value = _uiState.value.copy(trumpPickerIndex = index)
+    }
+
     fun updateBasePoints(participantIndex: Int, value: String) {
         val updated = _uiState.value.roundInputs.map {
             if (it.participantIndex == participantIndex) it.copy(basePoints = value) else it
@@ -132,7 +137,8 @@ class ScoringViewModel @Inject constructor(
                 )
             }
             val nextRoundNumber = state.rounds.size + 1
-            gameRepository.addRound(gameId, nextRoundNumber, trump, scores)
+            val picker = state.trumpPickerIndex ?: 0
+            gameRepository.addRound(gameId, nextRoundNumber, trump, picker, scores)
 
             val updatedAllScores = state.scoresByRound.values.flatten() + scores
             val totals = calculateGameTotals(updatedAllScores)

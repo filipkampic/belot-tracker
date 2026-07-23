@@ -56,11 +56,12 @@ class GameRepository(
         return gameDao.insert(game)
     }
 
-    suspend fun addRound(gameId: Long, roundNumber: Int, trump: TrumpSuit, scores: List<Score>) {
+    suspend fun addRound(gameId: Long, roundNumber: Int, trump: TrumpSuit, trumpPickerIndex: Int, scores: List<Score>) {
         val round = Round(
             gameId = gameId,
             roundNumber = roundNumber,
-            trump = trump
+            trump = trump,
+            trumpPickerIndex = trumpPickerIndex
         )
         val roundId = roundDao.insert(round)
 

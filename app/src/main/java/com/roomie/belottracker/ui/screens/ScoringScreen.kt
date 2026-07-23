@@ -6,24 +6,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -87,6 +92,7 @@ fun ScoringScreen(
                     RoundRow(
                         roundNumber = round.roundNumber,
                         trump = round.trump,
+                        trumpPickerIndex = round.trumpPickerIndex,
                         participantNames = state.participantNames,
                         scores = state.scoresByRound[round.id] ?: emptyList(),
                         onClick = { viewModel.startEditRound(round) }
@@ -100,9 +106,11 @@ fun ScoringScreen(
                     participantNames = state.participantNames,
                     inputs = state.roundInputs,
                     selectedTrump = state.selectedTrump,
+                    trumpPickerIndex = state.trumpPickerIndex,
+                    onPickerSelected = { viewModel.setTrumpPickerIndex(it) },
                     useZvanjeBela = game?.useZvanjeBela ?: false,
                     canSubmit = viewModel.canSubmitRound(),
-                    onTrumpSelected = viewModel::selectTrump,
+                    onTrumpSelected = { suit -> viewModel.selectTrump(suit) },
                     onBaseChange = viewModel::updateBasePoints,
                     onZvanjeToggle = viewModel::toggleZvanje,
                     onBelaToggle = viewModel::toggleBela,
@@ -113,11 +121,14 @@ fun ScoringScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RoundInputPanel(
     participantNames: List<String>,
     inputs: List<ParticipantScoreInput>,
     selectedTrump: TrumpSuit?,
+    trumpPickerIndex: Int?,
+    onPickerSelected: (Int) -> Unit,
     useZvanjeBela: Boolean,
     canSubmit: Boolean,
     onTrumpSelected: (TrumpSuit) -> Unit,
@@ -131,6 +142,39 @@ private fun RoundInputPanel(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        var expanded by remember { mutableStateOf(false) }
+        Text("Tko bira adut?", style = MaterialTheme.typography.labelLarge)
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                value = trumpPickerIndex?.let { participantNames[it] } ?: "",
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Igrač") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier.menuAnchor()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                participantNames.forEachIndexed { index, name ->
+                    DropdownMenuItem(
+                        text = { Text(name) },
+                        onClick = {
+                            onPickerSelected(index)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
         Text("Adut", style = MaterialTheme.typography.labelLarge)
         SuitPicker(selectedSuit = selectedTrump, onSuitSelected = onTrumpSelected)
 

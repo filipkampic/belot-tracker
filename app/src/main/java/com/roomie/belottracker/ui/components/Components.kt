@@ -127,6 +127,7 @@ fun TotalsCard(participantNames: List<String>, totals: Map<Int, Int>, modifier: 
 fun RoundRow(
     roundNumber: Int,
     trump: TrumpSuit,
+    trumpPickerIndex: Int,
     participantNames: List<String>,
     scores: List<Score>,
     onClick: () -> Unit,
@@ -138,6 +139,7 @@ fun RoundRow(
     ) {
         Text(roundNumber.toString(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(28.dp))
         Text(trump.displayName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(72.dp))
+        Text(participantNames[trumpPickerIndex], style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(72.dp))
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
             participantNames.forEachIndexed { index, _ ->
                 val total = scores.find { it.participantIndex == index }?.total() ?: 0
