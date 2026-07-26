@@ -4,12 +4,17 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.annotation.DrawableRes
+import com.roomie.belottracker.R
 
-enum class TrumpSuit(val displayName: String) {
-    ZIR("Žir"),
-    LIST("List"),
-    BUNDEVA("Bundeva"),
-    SRCE("Srce")
+enum class TrumpSuit(
+    val displayName: String,
+    @DrawableRes val iconRes: Int
+) {
+    ZIR("Žir", R.drawable.zir),
+    LIST("List", R.drawable.list),
+    BUNDEVA("Bundeva", R.drawable.bundeva),
+    SRCE("Srce", R.drawable.srce)
 }
 
 @Entity(

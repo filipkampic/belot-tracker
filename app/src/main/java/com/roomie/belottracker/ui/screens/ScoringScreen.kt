@@ -2,6 +2,7 @@ package com.roomie.belottracker.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -29,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -142,54 +144,79 @@ private fun RoundInputPanel(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        var expanded by remember { mutableStateOf(false) }
-        Text("Tko bira adut?", style = MaterialTheme.typography.labelLarge)
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = Alignment.Top
         ) {
-            TextField(
-                value = trumpPickerIndex?.let { participantNames[it] } ?: "",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Igrač") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                modifier = Modifier.menuAnchor()
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                participantNames.forEachIndexed { index, name ->
-                    DropdownMenuItem(
-                        text = { Text(name) },
-                        onClick = {
-                            onPickerSelected(index)
-                            expanded = false
-                        }
+                var expanded by remember { mutableStateOf(false) }
+                Text("Tko bira adut?", style = MaterialTheme.typography.labelLarge)
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    TextField(
+                        value = trumpPickerIndex?.let { participantNames[it] } ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Igrač") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        participantNames.forEachIndexed { index, name ->
+                            DropdownMenuItem(
+                                text = { Text(name) },
+                                onClick = {
+                                    onPickerSelected(index)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
-        }
 
-        Text("Adut", style = MaterialTheme.typography.labelLarge)
-        SuitPicker(selectedSuit = selectedTrump, onSuitSelected = onTrumpSelected)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Adut", style = MaterialTheme.typography.labelLarge)
+                SuitPicker(selectedSuit = selectedTrump, onSuitSelected = onTrumpSelected)
+            }
+        }
 
         participantNames.forEachIndexed { index, name ->
             val input = inputs.find { it.participantIndex == index }
 
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(name, style = MaterialTheme.typography.labelLarge)
                 ScoreInputField(
                     label = "Bodovi",
                     value = input?.basePoints ?: "",
                     onValueChange = { onBaseChange(index, it) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(0.6f)
                 )
                 if (useZvanjeBela) {
                     ZvanjeChipRow(
