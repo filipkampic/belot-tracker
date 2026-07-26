@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DropdownMenuItem
@@ -74,48 +74,50 @@ fun ScoringScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .imePadding()
-                .verticalScroll(rememberScrollState())
+                .imePadding(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TotalsCard(
-                participantNames = state.participantNames,
-                totals = state.totals,
-                modifier = Modifier.padding(16.dp)
-            )
+            item {
+                TotalsCard(
+                    participantNames = state.participantNames,
+                    totals = state.totals,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
 
-            Column(modifier = Modifier.weight(1f, fill = false)) {
-                state.rounds.forEach { round ->
-                    RoundRow(
-                        roundNumber = round.roundNumber,
-                        trump = round.trump,
-                        trumpPickerIndex = round.trumpPickerIndex,
-                        participantNames = state.participantNames,
-                        scores = state.scoresByRound[round.id] ?: emptyList(),
-                        onClick = { viewModel.startEditRound(round) }
-                    )
-                    HorizontalDivider()
-                }
+            items(state.rounds) { round ->
+                RoundRow(
+                    roundNumber = round.roundNumber,
+                    trump = round.trump,
+                    trumpPickerIndex = round.trumpPickerIndex,
+                    participantNames = state.participantNames,
+                    scores = state.scoresByRound[round.id] ?: emptyList(),
+                    onClick = { viewModel.startEditRound(round) }
+                )
+                HorizontalDivider()
             }
 
             if (!isFinished) {
-                RoundInputPanel(
-                    participantNames = state.participantNames,
-                    inputs = state.roundInputs,
-                    selectedTrump = state.selectedTrump,
-                    trumpPickerIndex = state.trumpPickerIndex,
-                    onPickerSelected = { viewModel.setTrumpPickerIndex(it) },
-                    useZvanjeBela = game?.useZvanjeBela ?: false,
-                    canSubmit = viewModel.canSubmitRound(),
-                    onTrumpSelected = { suit -> viewModel.selectTrump(suit) },
-                    onBaseChange = viewModel::updateBasePoints,
-                    onZvanjeToggle = viewModel::toggleZvanje,
-                    onBelaToggle = viewModel::toggleBela,
-                    onSubmit = viewModel::submitRound
-                )
+                item {
+                    RoundInputPanel(
+                        participantNames = state.participantNames,
+                        inputs = state.roundInputs,
+                        selectedTrump = state.selectedTrump,
+                        trumpPickerIndex = state.trumpPickerIndex,
+                        onPickerSelected = { viewModel.setTrumpPickerIndex(it) },
+                        useZvanjeBela = game?.useZvanjeBela ?: false,
+                        canSubmit = viewModel.canSubmitRound(),
+                        onTrumpSelected = { suit -> viewModel.selectTrump(suit) },
+                        onBaseChange = viewModel::updateBasePoints,
+                        onZvanjeToggle = viewModel::toggleZvanje,
+                        onBelaToggle = viewModel::toggleBela,
+                        onSubmit = viewModel::submitRound
+                    )
+                }
             }
         }
     }
