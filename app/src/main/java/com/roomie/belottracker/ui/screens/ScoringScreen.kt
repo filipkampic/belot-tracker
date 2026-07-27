@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.GameStatus
+import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.TrumpSuit
 import com.roomie.belottracker.ui.components.PrimaryButton
 import com.roomie.belottracker.ui.components.RoundRow
@@ -113,11 +114,13 @@ fun ScoringScreen(
                         onPickerSelected = { viewModel.setTrumpPickerIndex(it) },
                         useZvanjeBela = game?.useZvanjeBela ?: false,
                         canSubmit = viewModel.canSubmitRound(),
+                        editingRound = state.editingRound,
                         onTrumpSelected = { suit -> viewModel.selectTrump(suit) },
                         onBaseChange = viewModel::updateBasePoints,
                         onZvanjeToggle = viewModel::toggleZvanje,
                         onBelaToggle = viewModel::toggleBela,
-                        onSubmit = viewModel::submitRound
+                        onSubmit = viewModel::submitRound,
+                        onSubmitEdit = viewModel::submitEditRound
                     )
                 }
             }
@@ -135,11 +138,13 @@ private fun RoundInputPanel(
     onPickerSelected: (Int) -> Unit,
     useZvanjeBela: Boolean,
     canSubmit: Boolean,
+    editingRound: Round?,
     onTrumpSelected: (TrumpSuit) -> Unit,
     onBaseChange: (Int, String) -> Unit,
     onZvanjeToggle: (Int, String) -> Unit,
     onBelaToggle: (Int) -> Unit,
     onSubmit: () -> Unit,
+    onSubmitEdit: () -> Unit,
     submitLabel: String = "Dodaj krug"
 ) {
     Column(
@@ -229,9 +234,12 @@ private fun RoundInputPanel(
             }
         }
 
+        val submitAction = if (editingRound != null) onSubmitEdit else onSubmit
+        val buttonLabel = if (editingRound != null) "Spremi izmjene" else submitLabel
+
         PrimaryButton(
-            text = submitLabel,
-            onClick = onSubmit,
+            text = buttonLabel,
+            onClick = submitAction,
             enabled = canSubmit,
             modifier = Modifier.fillMaxWidth()
         )
