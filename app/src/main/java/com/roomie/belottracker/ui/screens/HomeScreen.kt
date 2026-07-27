@@ -90,7 +90,8 @@ fun HomeScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(recentGames) { game ->
+                    items(recentGames) { summary ->
+                        val game = summary.game
                         Card(
                             onClick = { onGameClick(game.id) },
                             modifier = Modifier.fillMaxWidth()
@@ -114,6 +115,25 @@ fun HomeScreen(
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    game.participantNames.forEachIndexed { index, name ->
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                name,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                maxLines = 1
+                                            )
+                                            Text(
+                                                (summary.totals[index] ?: 0).toString(),
+                                                style = MaterialTheme.typography.titleLarge
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

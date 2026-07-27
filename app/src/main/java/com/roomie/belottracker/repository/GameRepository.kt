@@ -1,6 +1,7 @@
 package com.roomie.belottracker.repository
 
 import com.roomie.belottracker.data.dao.GameDao
+import com.roomie.belottracker.data.dao.GameScore
 import com.roomie.belottracker.data.dao.GameWithRounds
 import com.roomie.belottracker.data.dao.RoundDao
 import com.roomie.belottracker.data.dao.ScoreDao
@@ -37,6 +38,8 @@ class GameRepository(
     }
 
     suspend fun getScoresForRound(roundId: Long): List<Score> = scoreDao.getScoresForRound(roundId)
+
+    fun getAllGameScores(): Flow<List<GameScore>> = scoreDao.getAllGameScores()
 
     suspend fun createGame(
         mode: GameMode,
