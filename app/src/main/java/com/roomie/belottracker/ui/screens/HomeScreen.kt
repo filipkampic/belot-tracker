@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
 import com.roomie.belottracker.ui.viewmodel.HomeViewModel
 import com.roomie.belottracker.util.formatGameDate
@@ -115,6 +116,28 @@ fun HomeScreen(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
+                                Spacer(Modifier.height(4.dp))
+
+                                val resultText = when(game.mode) {
+                                    GameMode.ONE_V_ONE -> {
+                                        val p = game.participantNames
+                                        val t = game.totals
+                                        "${p[0]} ${t[0]} : ${t[1]} ${p[1]}"
+                                    }
+                                    GameMode.ONE_V_ONE_V_ONE -> {
+                                        game.participantNames.zip(game.totals)
+                                            .joinToString(" · ") { (name, total) -> "$name: $total" }
+                                    }
+                                    GameMode.TWO_V_TWO -> {
+                                        val team1 = game.totals[0] + game.totals[1]
+                                        val team2 = game.totals[2] + game.totals[3]
+                                        "$team1 : $team2"
+                                    }
+                                }
+                                Text(
+                                    text = resultText,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
                         }
                     }

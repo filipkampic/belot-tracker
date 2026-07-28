@@ -146,7 +146,14 @@ class ScoringViewModel @Inject constructor(
 
             if (winnerIndex != null) {
                 val winnerName = state.game?.participantNames?.get(winnerIndex)
-                if (winnerName != null) {
+                val game = state.game
+                if (winnerName != null && game != null) {
+                    val totalsList = game.participantNames.indices.map { totals[it] ?: 0 }
+                    val updatedGame = game.copy(
+                        totals = totalsList,
+                        winnerName = winnerName
+                    )
+                    gameRepository.updateGame(updatedGame)
                     gameRepository.finishGame(gameId, winnerName)
                     _navigateToWinner.send(winnerName)
                 }

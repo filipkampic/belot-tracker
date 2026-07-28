@@ -38,8 +38,12 @@ object DatabaseModule {
 
 val MIGRATION_3_4 = object : Migration(3, 4) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            "ALTER TABLE rounds ADD COLUMN trumpPickerIndex INTEGER NOT NULL DEFAULT 0"
-        )
+        db.execSQL("ALTER TABLE rounds ADD COLUMN trumpPickerIndex INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE games ADD COLUMN totals TEXT NOT NULL DEFAULT '[]'")
     }
 }
