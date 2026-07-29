@@ -106,6 +106,31 @@ fun ScoringScreen(
 
             if (!isFinished) {
                 item {
+                    val dealerName = state.dealerIndex?.let { state.participantNames[it] }
+                    val firstPickerName = state.firstTrumpPickerIndex?.let { state.participantNames[it] }
+
+                    if (dealerName != null && firstPickerName != null) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp)
+                                .padding(bottom = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = "Dijeli: $dealerName",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "Bira adut: $firstPickerName",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+
+                item {
                     RoundInputPanel(
                         participantNames = state.participantNames,
                         inputs = state.roundInputs,
@@ -162,7 +187,7 @@ private fun RoundInputPanel(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var expanded by remember { mutableStateOf(false) }
-                Text("Tko bira adut?", style = MaterialTheme.typography.labelLarge)
+                Text("Tko je odabrao adut?", style = MaterialTheme.typography.labelLarge)
 
                 ExposedDropdownMenuBox(
                     expanded = expanded,

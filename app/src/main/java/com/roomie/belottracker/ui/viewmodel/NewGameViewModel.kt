@@ -75,11 +75,15 @@ class NewGameViewModel @Inject constructor(
         val state = _uiState.value
         if (!canStartGame()) return
         viewModelScope.launch {
+            val numberOfPlayers = state.players.size
+            val initialDealer = (0 until numberOfPlayers).random()
+
             val gameId = gameRepository.createGame(
                 mode = state.mode,
                 targetScore = state.targetScore,
                 useZvanjeBela = state.useZvanjeBela,
-                players = state.players
+                players = state.players,
+                initialDealer = initialDealer
             )
             onGameCreated(gameId)
         }

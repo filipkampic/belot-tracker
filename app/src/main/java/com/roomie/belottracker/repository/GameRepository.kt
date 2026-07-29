@@ -32,6 +32,10 @@ class GameRepository(
 
     suspend fun getGameWithRounds(gameId: Long): GameWithRounds? = gameDao.getGameWithRounds(gameId)
 
+    suspend fun getRounds(gameId: Long): List<Round> {
+        return roundDao.getRoundsForGame(gameId)
+    }
+
     suspend fun getLastGame(): Game? {
         return gameDao.getLastGame()
     }
@@ -42,7 +46,8 @@ class GameRepository(
         mode: GameMode,
         targetScore: Int,
         useZvanjeBela: Boolean,
-        players: List<String>
+        players: List<String>,
+        initialDealer: Int = 0
     ): Long {
         val game = Game(
             date = System.currentTimeMillis(),
@@ -51,17 +56,28 @@ class GameRepository(
             useZvanjeBela = useZvanjeBela,
             participantNames = players,
             status = GameStatus.ONGOING,
+            initialDealerIndex = initialDealer,
             winnerName = null
         )
         return gameDao.insert(game)
     }
 
-    suspend fun addRound(gameId: Long, roundNumber: Int, trump: TrumpSuit, trumpPickerIndex: Int, scores: List<Score>) {
+    suspend fun addRound(
+        gameId: Long,
+        roundNumber: Int,
+        trump: TrumpSuit,
+        trumpPickerIndex: Int,
+        dealerIndex: Int,
+        firstTrumpPickerIndex: Int,
+        scores: List<Score>
+    ) {
         val round = Round(
             gameId = gameId,
             roundNumber = roundNumber,
             trump = trump,
-            trumpPickerIndex = trumpPickerIndex
+            trumpPickerIndex = trumpPickerIndex,
+            dealerIndex = dealerIndex,
+            firstTrumpPickerIndex = firstTrumpPickerIndex
         )
         val roundId = roundDao.insert(round)
 

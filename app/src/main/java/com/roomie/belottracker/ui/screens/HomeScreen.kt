@@ -122,15 +122,21 @@ fun HomeScreen(
                                     GameMode.ONE_V_ONE -> {
                                         val p = game.participantNames
                                         val t = game.totals
-                                        "${p[0]} ${t[0]} : ${t[1]} ${p[1]}"
+                                        val name1 = p.getOrNull(0) ?: ""
+                                        val name2 = p.getOrNull(1) ?: ""
+                                        val score1 = t.getOrNull(0) ?: 0
+                                        val score2 = t.getOrNull(1) ?: 0
+                                        "$name1 $score1 : $score2 $name2"
                                     }
                                     GameMode.ONE_V_ONE_V_ONE -> {
-                                        game.participantNames.zip(game.totals)
-                                            .joinToString(" · ") { (name, total) -> "$name: $total" }
+                                        game.participantNames.mapIndexed { index, name ->
+                                            "$name: ${game.totals.getOrNull(index) ?: 0}"
+                                        }.joinToString(" · ")
                                     }
                                     GameMode.TWO_V_TWO -> {
-                                        val team1 = game.totals[0] + game.totals[1]
-                                        val team2 = game.totals[2] + game.totals[3]
+                                        val t = game.totals
+                                        val team1 = (t.getOrNull(0) ?: 0) + (t.getOrNull(1) ?: 0)
+                                        val team2 = (t.getOrNull(2) ?: 0) + (t.getOrNull(3) ?: 0)
                                         "$team1 : $team2"
                                     }
                                 }

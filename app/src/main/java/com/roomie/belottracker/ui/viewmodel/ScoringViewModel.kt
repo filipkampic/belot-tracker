@@ -34,6 +34,8 @@ data class ScoringUiState(
     val totals: Map<Int, Int> = emptyMap(),
     val selectedTrump: TrumpSuit? = null,
     val trumpPickerIndex: Int? = null,
+    val dealerIndex: Int? = null,
+    val firstTrumpPickerIndex: Int? = null,
     val roundInputs: List<ParticipantScoreInput> = emptyList(),
     val editingRound: Round? = null
 )
@@ -57,8 +59,8 @@ class ScoringViewModel @Inject constructor(
     private fun loadGame() {
         viewModelScope.launch {
             val game = gameRepository.getGameById(gameId) ?: return@launch
-            val gameWithRounds = gameRepository.getGameWithRounds(gameId)
-            val rounds = gameWithRounds?.rounds?.sortedBy { it.roundNumber } ?: emptyList()
+            val rounds = gameRepository.getRounds(gameId)
+            val playedRoundsCount = rounds.size
 
             val scoresByRound = mutableMapOf<Long, List<Score>>()
             val allScores = mutableListOf<Score>()
@@ -69,13 +71,36 @@ class ScoringViewModel @Inject constructor(
             }
             val totals = calculateGameTotals(allScores)
 
+            val numberOfPlayers = game.participantNames.size
+            val initialDealer = game.initialDealerIndex
+
+            val dealerIndex: Int
+            val firstTrumpPickerIndex: Int
+
+            if (numberOfPlayers == 4) {
+                val seatingOrder = listOf(0, 2, 1, 3)
+                val initialSeat = seatingOrder.indexOf(initialDealer)
+
+                val dealerSeat = (initialSeat + playedRoundsCount) % 4
+                dealerIndex = seatingOrder[dealerSeat]
+
+                val pickerSeat = (dealerSeat + 1) % 4
+                firstTrumpPickerIndex = seatingOrder[pickerSeat]
+            } else {
+                dealerIndex = (initialDealer + playedRoundsCount) % numberOfPlayers
+                firstTrumpPickerIndex = (dealerIndex + 1) % numberOfPlayers
+            }
+
             _uiState.value = _uiState.value.copy(
                 game = game,
                 participantNames = game.participantNames,
                 rounds = rounds,
-                scoresByRound =scoresByRound,
+                scoresByRound = scoresByRound,
                 totals = totals,
                 selectedTrump = null,
+                dealerIndex = dealerIndex,
+                firstTrumpPickerIndex = firstTrumpPickerIndex,
+                trumpPickerIndex = firstTrumpPickerIndex,
                 editingRound = null,
                 roundInputs = game.participantNames.mapIndexed { index, _ ->
                     ParticipantScoreInput(participantIndex = index)
@@ -138,7 +163,27 @@ class ScoringViewModel @Inject constructor(
             }
             val nextRoundNumber = state.rounds.size + 1
             val picker = state.trumpPickerIndex ?: 0
-            gameRepository.addRound(gameId, nextRoundNumber, trump, picker, scores)
+
+            val numberOfPlayers = state.participantNames.size
+            val initialDealer = state.game?.initialDealerIndex ?: 0
+            val dealerIndex: Int
+            val firstTrumpPickerIndex: Int
+
+            if (numberOfPlayers == 4) {
+                val seatingOrder = listOf(0, 2, 1, 3)
+                val initialSeat = seatingOrder.indexOf(initialDealer)
+
+                val dealerSeat = (initialSeat + nextRoundNumber - 1) % 4
+                dealerIndex = seatingOrder[dealerSeat]
+
+                val pickerSeat = (dealerSeat + 1) % 4
+                firstTrumpPickerIndex = seatingOrder[pickerSeat]
+            } else {
+                dealerIndex = (initialDealer + nextRoundNumber - 1) % numberOfPlayers
+                firstTrumpPickerIndex = (dealerIndex + 1) % numberOfPlayers
+            }
+
+            gameRepository.addRound(gameId, nextRoundNumber, trump, picker, dealerIndex, firstTrumpPickerIndex, scores)
 
             val updatedAllScores = state.scoresByRound.values.flatten() + scores
             val totals = calculateGameTotals(updatedAllScores)
@@ -147,7 +192,7 @@ class ScoringViewModel @Inject constructor(
             if (winnerIndex != null) {
                 val winnerName = state.game?.participantNames?.get(winnerIndex)
                 val game = state.game
-                if (winnerName != null && game != null) {
+                if (winnerName != null) {
                     val totalsList = game.participantNames.indices.map { totals[it] ?: 0 }
                     val updatedGame = game.copy(
                         totals = totalsList,
@@ -172,7 +217,13 @@ class ScoringViewModel @Inject constructor(
                 bela = it.bela
             )
         }
-        _uiState.value = _uiState.value.copy(editingRound = round, selectedTrump = round.trump, roundInputs = inputs)
+        _uiState.value = _uiState.value.copy(
+            editingRound = round,
+            selectedTrump = round.trump,
+            dealerIndex = round.dealerIndex,
+            firstTrumpPickerIndex = round.firstTrumpPickerIndex,
+            roundInputs = inputs
+        )
     }
 
     fun cancelEditRound() {
@@ -190,9 +241,15 @@ class ScoringViewModel @Inject constructor(
         val state = _uiState.value
         val round = state.editingRound ?: return
         val trump = state.selectedTrump ?: return
+        val dealerIndex = state.dealerIndex ?: round.dealerIndex
+        val firstTrumpPickerIndex = state.firstTrumpPickerIndex ?: round.firstTrumpPickerIndex
 
         viewModelScope.launch {
-            val updatedRound = round.copy(trump = trump)
+            val updatedRound = round.copy(
+                trump = trump,
+                dealerIndex = dealerIndex,
+                firstTrumpPickerIndex = firstTrumpPickerIndex
+            )
             val scores = state.roundInputs.map {
                 Score(
                     roundId = round.id,

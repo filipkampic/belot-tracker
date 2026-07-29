@@ -12,7 +12,7 @@ import com.roomie.belottracker.data.entities.Score
 
 @Database(
     entities = [Game::class, Round::class, Score::class],
-    version = 5,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

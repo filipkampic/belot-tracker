@@ -27,5 +27,7 @@ data class Round(
     val gameId: Long,
     val roundNumber: Int,
     val trump: TrumpSuit,
-    val trumpPickerIndex: Int
+    val trumpPickerIndex: Int,
+    val dealerIndex: Int,
+    val firstTrumpPickerIndex: Int
 )

@@ -15,6 +15,7 @@ data class Game(
     val useZvanjeBela: Boolean,
     val status: GameStatus = GameStatus.ONGOING,
     val participantNames: List<String>,
+    val initialDealerIndex: Int,
     val winnerName: String? = null,
     val totals: List<Int> = listOf()
 )

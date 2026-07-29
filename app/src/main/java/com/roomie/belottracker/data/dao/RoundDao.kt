@@ -20,7 +20,7 @@ interface RoundDao {
     suspend fun delete(round: Round)
 
     @Query("SELECT * FROM rounds WHERE gameId = :gameId ORDER BY roundNumber ASC")
-    fun getRoundsForGame(gameId: Long): Flow<List<Round>>
+    suspend fun getRoundsForGame(gameId: Long): List<Round>
 
     @Query("SELECT * FROM rounds WHERE id = :id")
     suspend fun getRoundById(id: Long): Round?
