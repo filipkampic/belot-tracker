@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.roomie.belottracker.data.entities.GameMode
@@ -145,13 +148,29 @@ fun ZvanjeChipRow(
             FilterChip(
                 selected = selectedEvents.contains(value),
                 onClick = { onToggle(value) },
-                label = { Text(value) }
+                label = {
+                    Text(
+                        value,
+                        fontWeight = if (selectedEvents.contains(value)) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                shape = RoundedCornerShape(10.dp)
             )
         }
         FilterChip(
             selected = belaSelected,
             onClick = onBelaToggle,
-            label = { Text("Bela") }
+            label = {
+                Text(
+                    "Bela",
+                    fontWeight = if (belaSelected) FontWeight.Bold else FontWeight.Normal
+                )
+            },
+            shape = RoundedCornerShape(10.dp),
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
         )
     }
 }

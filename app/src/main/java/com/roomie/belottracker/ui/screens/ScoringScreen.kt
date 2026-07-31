@@ -1,17 +1,27 @@
 package com.roomie.belottracker.ui.screens
 
+import android.R.attr.navigationIcon
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -19,10 +29,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +44,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.GameStatus
@@ -39,14 +53,12 @@ import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.TrumpSuit
 import com.roomie.belottracker.ui.components.PrimaryButton
 import com.roomie.belottracker.ui.components.RoundRow
-import com.roomie.belottracker.ui.components.ScoreInputField
 import com.roomie.belottracker.ui.components.SuitPicker
 import com.roomie.belottracker.ui.components.TotalsCard
 import com.roomie.belottracker.ui.components.ZvanjeChipRow
 import com.roomie.belottracker.ui.viewmodel.ParticipantScoreInput
 import com.roomie.belottracker.ui.viewmodel.ScoringViewModel
 import com.roomie.belottracker.util.modeLabel
-import kotlin.collections.find
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,12 +80,29 @@ fun ScoringScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(game?.let { modeLabel(it.mode) } ?: "") },
+                title = {
+                    Column {
+                        Text(
+                            text = game?.let { modeLabel(it.mode) } ?: "Rezultati",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                        if (isFinished) {
+                            Text(
+                                text = "Igra je završena",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Natrag")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                )
             )
         }
     ) { padding ->
@@ -82,50 +111,97 @@ fun ScoringScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .imePadding(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 TotalsCard(
                     participantNames = state.participantNames,
                     totals = state.totals,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
 
             items(state.rounds) { round ->
-                RoundRow(
-                    roundNumber = round.roundNumber,
-                    trump = round.trump,
-                    trumpPickerIndex = round.trumpPickerIndex,
-                    participantNames = state.participantNames,
-                    scores = state.scoresByRound[round.id] ?: emptyList(),
-                    onClick = { viewModel.startEditRound(round) }
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    RoundRow(
+                        roundNumber = round.roundNumber,
+                        trump = round.trump,
+                        trumpPickerIndex = round.trumpPickerIndex,
+                        participantNames = state.participantNames,
+                        scores = state.scoresByRound[round.id] ?: emptyList(),
+                        onClick = { viewModel.startEditRound(round) }
+                    )
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                 )
-                HorizontalDivider()
             }
 
             if (!isFinished) {
                 item {
                     val dealerName = state.dealerIndex?.let { state.participantNames[it] }
-                    val firstPickerName = state.firstTrumpPickerIndex?.let { state.participantNames[it] }
+                    val firstPickerName =
+                        state.firstTrumpPickerIndex?.let { state.participantNames[it] }
 
                     if (dealerName != null && firstPickerName != null) {
-                        Column(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .padding(top = 8.dp)
-                                .padding(bottom = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.secondaryContainer
+                            )
                         ) {
-                            Text(
-                                text = "Dijeli: $dealerName",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "Bira adut: $firstPickerName",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Dijeli:",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                            alpha = 0.7f
+                                        )
+                                    )
+                                    Text(
+                                        text = dealerName,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Bira adut:",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                            alpha = 0.7f
+                                        )
+                                    )
+                                    Text(
+                                        text = firstPickerName,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -169,38 +245,73 @@ private fun RoundInputPanel(
     onZvanjeToggle: (Int, String) -> Unit,
     onBelaToggle: (Int) -> Unit,
     onSubmit: () -> Unit,
-    onSubmitEdit: () -> Unit,
-    submitLabel: String = "Dodaj krug"
+    onSubmitEdit: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
-            verticalAlignment = Alignment.Top
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = if (editingRound != null) "Uredi rundu #${editingRound.roundNumber}" else "Unos nove runde",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
+
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "Odaberi adut:",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SuitPicker(
+                        selectedSuit = selectedTrump,
+                        onSuitSelected = onTrumpSelected
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 var expanded by remember { mutableStateOf(false) }
-                Text("Tko je odabrao adut?", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "Tko je odabrao adut?",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
                 ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    TextField(
-                        value = trumpPickerIndex?.let { participantNames[it] } ?: "",
+                    OutlinedTextField(
+                        value = trumpPickerIndex?.let { participantNames.getOrNull(it) } ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Igrač") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
@@ -208,7 +319,8 @@ private fun RoundInputPanel(
 
                     ExposedDropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         participantNames.forEachIndexed { index, name ->
                             DropdownMenuItem(
@@ -216,57 +328,78 @@ private fun RoundInputPanel(
                                 onClick = {
                                     onPickerSelected(index)
                                     expanded = false
-                                }
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                             )
                         }
                     }
                 }
             }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Adut", style = MaterialTheme.typography.labelLarge)
-                SuitPicker(selectedSuit = selectedTrump, onSuitSelected = onTrumpSelected)
-            }
-        }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
 
-        participantNames.forEachIndexed { index, name ->
-            val input = inputs.find { it.participantIndex == index }
+            inputs.forEachIndexed { _, input ->
+                val name = participantNames.getOrNull(input.participantIndex)
+                    ?: "Igrač ${input.participantIndex + 1}"
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(name, style = MaterialTheme.typography.labelLarge)
-                ScoreInputField(
-                    label = "Bodovi",
-                    value = input?.basePoints ?: "",
-                    onValueChange = { onBaseChange(index, it) },
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                )
-                if (useZvanjeBela) {
-                    ZvanjeChipRow(
-                        selectedEvents = input?.zvanjeEvents ?: emptyList(),
-                        onToggle = { value -> onZvanjeToggle(index, value) },
-                        belaSelected = input?.bela ?: false,
-                        onBelaToggle = { onBelaToggle(index) }
-                    )
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    tonalElevation = 1.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        OutlinedTextField(
+                            value = input.basePoints,
+                            onValueChange = { onBaseChange(input.participantIndex, it) },
+                            label = { Text("Bodovi u igri") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        if (useZvanjeBela) {
+                            Text(
+                                text = "Zvanja i Bela:",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            ZvanjeChipRow(
+                                selectedEvents = input.zvanjeEvents,
+                                onToggle = { zvanje ->
+                                    onZvanjeToggle(
+                                        input.participantIndex,
+                                        zvanje
+                                    )
+                                },
+                                belaSelected = input.bela,
+                                onBelaToggle = { onBelaToggle(input.participantIndex) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
                 }
             }
+
+            PrimaryButton(
+                text = if (editingRound != null) "Spremi izmjene" else "Dodaj rundu",
+                onClick = { if (editingRound != null) onSubmitEdit() else onSubmit() },
+                enabled = canSubmit,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-
-        val submitAction = if (editingRound != null) onSubmitEdit else onSubmit
-        val buttonLabel = if (editingRound != null) "Spremi izmjene" else submitLabel
-
-        PrimaryButton(
-            text = buttonLabel,
-            onClick = submitAction,
-            enabled = canSubmit,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
