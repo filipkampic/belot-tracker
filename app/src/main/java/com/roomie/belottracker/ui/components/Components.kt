@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -176,21 +177,60 @@ fun ZvanjeChipRow(
 }
 
 @Composable
-fun TotalsCard(participantNames: List<String>, totals: Map<Int, Int>, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
+fun TotalsCard(
+    participantNames: List<String>,
+    totals: Map<Int, Int>,
+    modifier: Modifier = Modifier,
+    mode: GameMode = GameMode.ONE_V_ONE,
+) {
+    ElevatedCard(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            participantNames.forEachIndexed { index, name ->
+            if (mode == GameMode.TWO_V_TWO) {
+                val team1Label = if (participantNames.size >= 2) {
+                    "${participantNames[0]} & ${participantNames[1]}"
+                } else "Tim 1"
+                val team2Label = if (participantNames.size >= 4) {
+                    "${participantNames[2]} & ${participantNames[3]}"
+                } else "Tim 2"
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                    Text(text = team1Label, style = MaterialTheme.typography.labelLarge)
                     Text(
-                        (totals[index] ?: 0).toString(),
-                        style = MaterialTheme.typography.headlineMedium
+                        text = "${totals[0] ?: 0}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
                     )
+                }
+
+                Text(":", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = team2Label, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = "${totals[1] ?: 0}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                participantNames.forEachIndexed { index, name ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                        Text(
+                            text = (totals[index] ?: 0).toString(),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }

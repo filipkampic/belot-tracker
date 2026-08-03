@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
 import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.TrumpSuit
@@ -118,6 +119,7 @@ fun ScoringScreen(
                 TotalsCard(
                     participantNames = state.participantNames,
                     totals = state.totals,
+                    mode = game?.mode ?: GameMode.ONE_V_ONE,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }

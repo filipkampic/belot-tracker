@@ -1,5 +1,6 @@
 package com.roomie.belottracker.util
 
+import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.Score
 
 fun Score.total(): Int {
@@ -13,7 +14,7 @@ fun Score.total(): Int {
     return basePoints + zvanjeSum + belaBonus
 }
 
-fun calculateGameTotals(scores: List<Score>): Map<Int, Int> {
+fun calculateGameTotals(scores: List<Score>, mode: GameMode = GameMode.ONE_V_ONE): Map<Int, Int> {
     val gameTotals = mutableMapOf<Int, Int>()
     for (score in scores) {
         val participantIndex = score.participantIndex
@@ -21,10 +22,29 @@ fun calculateGameTotals(scores: List<Score>): Map<Int, Int> {
         gameTotals[participantIndex] = total
     }
 
+    if (mode == GameMode.TWO_V_TWO) {
+        val team1Score = (gameTotals[0] ?: 0) + (gameTotals[1] ?: 0)
+        val team2Score = (gameTotals[2] ?: 0) + (gameTotals[3] ?: 0)
+        return mapOf(
+            0 to team1Score,
+            1 to team2Score
+        )
+    }
+
     return gameTotals
 }
 
-fun checkWinner(totals: Map<Int, Int>, targetScore: Int): Int? {
+fun checkWinner(totals: Map<Int, Int>, targetScore: Int, mode: GameMode = GameMode.ONE_V_ONE): Int? {
+    if (mode == GameMode.TWO_V_TWO) {
+        val team1Score = totals[0] ?: 0
+        val team2Score = totals[1] ?: 0
+        return when {
+            team1Score >= targetScore && team1Score > team2Score -> 0
+            team2Score >= targetScore && team2Score > team1Score -> 1
+            else -> null
+        }
+    }
+
     val leader = totals.maxByOrNull { it.value } ?: return null
     return if (leader.value >= targetScore) leader.key else null
 }

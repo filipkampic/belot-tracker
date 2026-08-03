@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.roomie.belottracker.data.entities.Game
+import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.Score
 import com.roomie.belottracker.data.entities.TrumpSuit
@@ -186,12 +187,14 @@ class ScoringViewModel @Inject constructor(
             gameRepository.addRound(gameId, nextRoundNumber, trump, picker, dealerIndex, firstTrumpPickerIndex, scores)
 
             val updatedAllScores = state.scoresByRound.values.flatten() + scores
-            val totals = calculateGameTotals(updatedAllScores)
-            val totalsList = state.game?.participantNames?.indices?.map { totals[it] ?: 0 } ?: emptyList()
+            val gameMode = state.game?.mode ?: GameMode.ONE_V_ONE
+            val totals = calculateGameTotals(updatedAllScores, gameMode)
+            val totalsCount = if (gameMode == GameMode.TWO_V_TWO) 2 else state.participantNames.size
+            val totalsList = (0 until totalsCount).map { totals[it] ?: 0 }
 
             val currentGame = state.game
             if (currentGame != null) {
-                val winnerIndex = checkWinner(totals, currentGame.targetScore)
+                val winnerIndex = checkWinner(totals, currentGame.targetScore, gameMode)
                 if (winnerIndex != null) {
                     val winnerName = currentGame.participantNames.getOrNull(winnerIndex)
                     if (winnerName != null) {
