@@ -30,8 +30,25 @@ class NewGameViewModel @Inject constructor(
         viewModelScope.launch {
             val lastGame = gameRepository.getLastGame()
             if (lastGame != null) {
+                val mode = lastGame.mode
+                val count = requiredPlayerCount(mode)
+
+                val loadedPlayers = if (lastGame.participantNames.size == count) {
+                    lastGame.participantNames
+                } else {
+                    List(count) { "" }
+                }
+
                 _uiState.value = _uiState.value.copy(
-                    players = lastGame.participantNames.toMutableList(),
+                    mode = mode,
+                    targetScore = lastGame.targetScore,
+                    useZvanjeBela = lastGame.useZvanjeBela,
+                    players = loadedPlayers
+                )
+            } else {
+                val count = requiredPlayerCount(GameMode.ONE_V_ONE)
+                _uiState.value = _uiState.value.copy(
+                    players = List(count) { "" }
                 )
             }
         }
