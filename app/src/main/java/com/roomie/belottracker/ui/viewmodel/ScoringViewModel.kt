@@ -187,23 +187,28 @@ class ScoringViewModel @Inject constructor(
 
             val updatedAllScores = state.scoresByRound.values.flatten() + scores
             val totals = calculateGameTotals(updatedAllScores)
-            val winnerIndex = checkWinner(totals, state.game?.targetScore ?: Int.MAX_VALUE)
+            val totalsList = state.game?.participantNames?.indices?.map { totals[it] ?: 0 } ?: emptyList()
 
-            if (winnerIndex != null) {
-                val winnerName = state.game?.participantNames?.get(winnerIndex)
-                val game = state.game
-                if (winnerName != null) {
-                    val totalsList = game.participantNames.indices.map { totals[it] ?: 0 }
-                    val updatedGame = game.copy(
-                        totals = totalsList,
-                        winnerName = winnerName
-                    )
+            val currentGame = state.game
+            if (currentGame != null) {
+                val winnerIndex = checkWinner(totals, currentGame.targetScore)
+                if (winnerIndex != null) {
+                    val winnerName = currentGame.participantNames.getOrNull(winnerIndex)
+                    if (winnerName != null) {
+                        val updatedGame = currentGame.copy(
+                            totals = totalsList,
+                            winnerName = winnerName
+                        )
+                        gameRepository.updateGame(updatedGame)
+                        gameRepository.finishGame(gameId, winnerName)
+                        _navigateToWinner.send(winnerName)
+                    }
+                } else {
+                    val updatedGame = currentGame.copy(totals = totalsList)
                     gameRepository.updateGame(updatedGame)
-                    gameRepository.finishGame(gameId, winnerName)
-                    _navigateToWinner.send(winnerName)
                 }
+                loadGame()
             }
-            loadGame()
         }
     }
 
@@ -260,6 +265,22 @@ class ScoringViewModel @Inject constructor(
                 )
             }
             gameRepository.editRound(updatedRound, scores)
+
+            val rounds = gameRepository.getRounds(gameId)
+            val allScores = mutableListOf<Score>()
+            for (r in rounds) {
+                allScores.addAll(gameRepository.getScoresForRound(r.id))
+            }
+
+            val totals = calculateGameTotals(allScores)
+            val totalsList = state.game?.participantNames?.indices?.map { totals[it] ?: 0 } ?: emptyList()
+
+            val currentGame = state.game
+            if (currentGame != null) {
+                val updatedGame = currentGame.copy(totals = totalsList)
+                gameRepository.updateGame(updatedGame)
+            }
+
             loadGame()
         }
     }
