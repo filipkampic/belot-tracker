@@ -6,9 +6,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.roomie.belottracker.ui.screens.HistoryScreen
 import com.roomie.belottracker.ui.screens.HomeScreen
 import com.roomie.belottracker.ui.screens.NewGameScreen
 import com.roomie.belottracker.ui.screens.ScoringScreen
+import com.roomie.belottracker.ui.screens.WinnerScreen
 
 @Composable
 fun BelotNavHost() {
@@ -36,6 +38,22 @@ fun BelotNavHost() {
                 gameId = gameId,
                 onBack = { navController.popBackStack() },
                 onWinner = { gId, winnerName -> navController.navigate("winner/$gId/$winnerName") }
+            )
+        }
+
+        composable("winner/{gameId}/{winnerName}",
+            arguments = listOf(
+                navArgument("gameId") { type = NavType.LongType },
+                navArgument("winnerName") { type = NavType.StringType }
+            )
+        ) {
+            WinnerScreen(onSaveAndExit = { navController.navigate("home") { popUpTo("home") { inclusive = true } } })
+        }
+
+        composable("history") {
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onGameClick = { gameId -> navController.navigate("game/$gameId") }
             )
         }
     }
