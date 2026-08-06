@@ -22,15 +22,6 @@ fun calculateGameTotals(scores: List<Score>, mode: GameMode = GameMode.ONE_V_ONE
         gameTotals[participantIndex] = total
     }
 
-    if (mode == GameMode.TWO_V_TWO) {
-        val team1Score = (gameTotals[0] ?: 0) + (gameTotals[1] ?: 0)
-        val team2Score = (gameTotals[2] ?: 0) + (gameTotals[3] ?: 0)
-        return mapOf(
-            0 to team1Score,
-            1 to team2Score
-        )
-    }
-
     return gameTotals
 }
 

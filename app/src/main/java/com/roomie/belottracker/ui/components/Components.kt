@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -247,6 +246,9 @@ fun RoundRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val is2v2 = participantNames.size == 4
+    val columnCount = if (is2v2) 2 else participantNames.size
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -268,9 +270,12 @@ fun RoundRow(
         }
         Text(participantNames[trumpPickerIndex], style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(72.dp))
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
-            participantNames.forEachIndexed { index, _ ->
+            (0 until columnCount).forEach { index ->
                 val total = scores.find { it.participantIndex == index }?.total() ?: 0
-                Text(total.toString(), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = total.toString(),
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

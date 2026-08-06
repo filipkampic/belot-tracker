@@ -210,6 +210,7 @@ fun ScoringScreen(
 
                 item {
                     RoundInputPanel(
+                        gameMode = game?.mode ?: GameMode.ONE_V_ONE,
                         participantNames = state.participantNames,
                         inputs = state.roundInputs,
                         selectedTrump = state.selectedTrump,
@@ -234,6 +235,7 @@ fun ScoringScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RoundInputPanel(
+    gameMode: GameMode,
     participantNames: List<String>,
     inputs: List<ParticipantScoreInput>,
     selectedTrump: TrumpSuit?,
@@ -340,9 +342,20 @@ private fun RoundInputPanel(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
 
-            inputs.forEachIndexed { _, input ->
-                val name = participantNames.getOrNull(input.participantIndex)
-                    ?: "Igrač ${input.participantIndex + 1}"
+            val teamIndices = if (gameMode == GameMode.TWO_V_TWO) listOf(0, 1) else inputs.indices.toList()
+
+            teamIndices.forEach { index ->
+                val input = inputs.getOrNull(index) ?: ParticipantScoreInput(participantIndex = index)
+
+                val title = if (gameMode == GameMode.TWO_V_TWO) {
+                    val p1 = participantNames.getOrNull(0) ?: "Igrač 1"
+                    val p2 = participantNames.getOrNull(1) ?: "Igrač 2"
+                    val p3 = participantNames.getOrNull(2) ?: "Igrač 3"
+                    val p4 = participantNames.getOrNull(3) ?: "Igrač 4"
+                    if (index == 0) "Tim 1 ($p1 & $p2)" else "Tim 2 ($p3 & $p4)"
+                } else {
+                    participantNames.getOrNull(index) ?: "Igrač ${index + 1}"
+                }
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -357,7 +370,7 @@ private fun RoundInputPanel(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
-                            text = name,
+                            text = title,
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )

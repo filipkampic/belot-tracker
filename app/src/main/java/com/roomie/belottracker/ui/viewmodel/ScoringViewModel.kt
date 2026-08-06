@@ -92,6 +92,8 @@ class ScoringViewModel @Inject constructor(
                 firstTrumpPickerIndex = (dealerIndex + 1) % numberOfPlayers
             }
 
+            val requiredInputsCount = if (game.mode == GameMode.TWO_V_TWO) 2 else game.participantNames.size
+
             _uiState.value = _uiState.value.copy(
                 game = game,
                 participantNames = game.participantNames,
@@ -103,7 +105,7 @@ class ScoringViewModel @Inject constructor(
                 firstTrumpPickerIndex = firstTrumpPickerIndex,
                 trumpPickerIndex = firstTrumpPickerIndex,
                 editingRound = null,
-                roundInputs = game.participantNames.mapIndexed { index, _ ->
+                roundInputs = (0 until requiredInputsCount).map { index ->
                     ParticipantScoreInput(participantIndex = index)
                 }
             )
@@ -144,7 +146,10 @@ class ScoringViewModel @Inject constructor(
 
     fun canSubmitRound(): Boolean {
         val state = _uiState.value
-        return state.selectedTrump != null && state.roundInputs.all { it.basePoints.toIntOrNull() != null }
+        if (state.selectedTrump == null) return false
+        val requiredCount = if (state.game?.mode == GameMode.TWO_V_TWO) 2 else state.participantNames.size
+        val activeInputs = state.roundInputs.take(requiredCount)
+        return activeInputs.all { it.basePoints.toIntOrNull() != null }
     }
 
     fun submitRound() {
@@ -153,15 +158,37 @@ class ScoringViewModel @Inject constructor(
         if (!canSubmitRound()) return
 
         viewModelScope.launch {
-            val scores = state.roundInputs.map {
-                Score(
-                    roundId = 0,
-                    participantIndex = it.participantIndex,
-                    basePoints = it.basePoints.toIntOrNull() ?: 0,
-                    zvanjeEvents = it.zvanjeEvents,
-                    bela = it.bela
+            val gameMode = state.game?.mode ?: GameMode.ONE_V_ONE
+
+            val scores = if (gameMode == GameMode.TWO_V_TWO) {
+                listOf(
+                    Score(
+                        roundId = 0,
+                        participantIndex = 0,
+                        basePoints = state.roundInputs.getOrNull(0)?.basePoints?.toIntOrNull() ?: 0,
+                        zvanjeEvents = state.roundInputs.getOrNull(0)?.zvanjeEvents ?: emptyList(),
+                        bela = state.roundInputs.getOrNull(0)?.bela ?: false
+                    ),
+                    Score(
+                        roundId = 0,
+                        participantIndex = 1,
+                        basePoints = state.roundInputs.getOrNull(1)?.basePoints?.toIntOrNull() ?: 0,
+                        zvanjeEvents = state.roundInputs.getOrNull(1)?.zvanjeEvents ?: emptyList(),
+                        bela = state.roundInputs.getOrNull(1)?.bela ?: false
+                    )
                 )
+            } else {
+                state.roundInputs.map {
+                    Score(
+                        roundId = 0,
+                        participantIndex = it.participantIndex,
+                        basePoints = it.basePoints.toIntOrNull() ?: 0,
+                        zvanjeEvents = it.zvanjeEvents,
+                        bela = it.bela
+                    )
+                }
             }
+
             val nextRoundNumber = state.rounds.size + 1
             val picker = state.trumpPickerIndex ?: 0
 
@@ -187,7 +214,6 @@ class ScoringViewModel @Inject constructor(
             gameRepository.addRound(gameId, nextRoundNumber, trump, picker, dealerIndex, firstTrumpPickerIndex, scores)
 
             val updatedAllScores = state.scoresByRound.values.flatten() + scores
-            val gameMode = state.game?.mode ?: GameMode.ONE_V_ONE
             val totals = calculateGameTotals(updatedAllScores, gameMode)
             val totalsCount = if (gameMode == GameMode.TWO_V_TWO) 2 else state.participantNames.size
             val totalsList = (0 until totalsCount).map { totals[it] ?: 0 }
@@ -196,7 +222,13 @@ class ScoringViewModel @Inject constructor(
             if (currentGame != null) {
                 val winnerIndex = checkWinner(totals, currentGame.targetScore, gameMode)
                 if (winnerIndex != null) {
-                    val winnerName = currentGame.participantNames.getOrNull(winnerIndex)
+                    val winnerName = if (gameMode == GameMode.TWO_V_TWO) {
+                        if (winnerIndex == 0) "Tim 1 (${currentGame.participantNames.getOrNull(0)} & ${currentGame.participantNames.getOrNull(1)})"
+                        else "Tim 2 (${currentGame.participantNames.getOrNull(2)} & ${currentGame.participantNames.getOrNull(3)})"
+                    } else {
+                        currentGame.participantNames.getOrNull(winnerIndex)
+                    }
+
                     if (winnerName != null) {
                         val updatedGame = currentGame.copy(
                             totals = totalsList,
@@ -217,14 +249,36 @@ class ScoringViewModel @Inject constructor(
 
     fun startEditRound(round: Round) {
         val scores = _uiState.value.scoresByRound[round.id] ?: emptyList()
-        val inputs = scores.map {
-            ParticipantScoreInput(
-                participantIndex = it.participantIndex,
-                basePoints = it.basePoints.toString(),
-                zvanjeEvents = it.zvanjeEvents,
-                bela = it.bela
+        val gameMode = _uiState.value.game?.mode ?: GameMode.ONE_V_ONE
+
+        val inputs = if (gameMode == GameMode.TWO_V_TWO) {
+            val scoreTeam1 = scores.find { it.participantIndex == 0 }
+            val scoreTeam2 = scores.find { it.participantIndex == 1 }
+            listOf(
+                ParticipantScoreInput(
+                    participantIndex = 0,
+                    basePoints = scoreTeam1?.basePoints?.toString() ?: "",
+                    zvanjeEvents = scoreTeam1?.zvanjeEvents ?: emptyList(),
+                    bela = scoreTeam1?.bela ?: false
+                ),
+                ParticipantScoreInput(
+                    participantIndex = 1,
+                    basePoints = scoreTeam2?.basePoints?.toString() ?: "",
+                    zvanjeEvents = scoreTeam2?.zvanjeEvents ?: emptyList(),
+                    bela = scoreTeam2?.bela ?: false
+                )
             )
+        } else {
+            scores.map {
+                ParticipantScoreInput(
+                    participantIndex = it.participantIndex,
+                    basePoints = it.basePoints.toString(),
+                    zvanjeEvents = it.zvanjeEvents,
+                    bela = it.bela
+                )
+            }
         }
+
         _uiState.value = _uiState.value.copy(
             editingRound = round,
             selectedTrump = round.trump,
@@ -235,11 +289,14 @@ class ScoringViewModel @Inject constructor(
     }
 
     fun cancelEditRound() {
-        val participantNames = _uiState.value.participantNames
-        _uiState.value = _uiState.value.copy(
+        val state = _uiState.value
+        val gameMode = state.game?.mode ?: GameMode.ONE_V_ONE
+        val requiredCount = if (gameMode == GameMode.TWO_V_TWO) 2 else state.participantNames.size
+
+        _uiState.value = state.copy(
             editingRound = null,
             selectedTrump = null,
-            roundInputs = participantNames.mapIndexed { index, _ ->
+            roundInputs = (0 until requiredCount).map { index ->
                 ParticipantScoreInput(participantIndex = index)
             }
         )

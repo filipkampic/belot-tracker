@@ -135,8 +135,8 @@ fun HomeScreen(
                                     }
                                     GameMode.TWO_V_TWO -> {
                                         val t = game.totals
-                                        val team1 = (t.getOrNull(0) ?: 0) + (t.getOrNull(1) ?: 0)
-                                        val team2 = (t.getOrNull(2) ?: 0) + (t.getOrNull(3) ?: 0)
+                                        val team1 = t.getOrNull(0) ?: 0
+                                        val team2 = t.getOrNull(1) ?: 0
                                         "$team1 : $team2"
                                     }
                                 }
