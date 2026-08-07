@@ -87,13 +87,12 @@ fun ScoringScreen(
                             text = game?.let { modeLabel(it.mode) } ?: "Rezultati",
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
-                        if (isFinished) {
-                            Text(
-                                text = "Igra je završena",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        val subTitle = if (isFinished) "Igra je završena" else "Cilj: ${game?.targetScore ?: 1001} bodova"
+                        Text(
+                            text = subTitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isFinished) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 },
                 navigationIcon = {
@@ -120,6 +119,7 @@ fun ScoringScreen(
                     participantNames = state.participantNames,
                     totals = state.totals,
                     mode = game?.mode ?: GameMode.ONE_V_ONE,
+                    targetScore = game?.targetScore ?: 1001,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }

@@ -181,54 +181,68 @@ fun TotalsCard(
     totals: Map<Int, Int>,
     modifier: Modifier = Modifier,
     mode: GameMode = GameMode.ONE_V_ONE,
+    targetScore: Int = 1001
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (mode == GameMode.TWO_V_TWO) {
-                val team1Label = if (participantNames.size >= 2) {
-                    "${participantNames[0]} & ${participantNames[1]}"
-                } else "Tim 1"
-                val team2Label = if (participantNames.size >= 4) {
-                    "${participantNames[2]} & ${participantNames[3]}"
-                } else "Tim 2"
+            Text(
+                text = "Cilj: $targetScore bodova",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = team1Label, style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        text = "${totals[0] ?: 0}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (mode == GameMode.TWO_V_TWO) {
+                    val team1Label = if (participantNames.size >= 2) {
+                        "${participantNames[0]} & ${participantNames[1]}"
+                    } else "Tim 1"
+                    val team2Label = if (participantNames.size >= 4) {
+                        "${participantNames[2]} & ${participantNames[3]}"
+                    } else "Tim 2"
 
-                Text(":", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = team2Label, style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        text = "${totals[1] ?: 0}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            } else {
-                participantNames.forEachIndexed { index, name ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                        Text(text = team1Label, style = MaterialTheme.typography.labelLarge)
                         Text(
-                            text = (totals[index] ?: 0).toString(),
+                            text = "${totals[0] ?: 0}",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = team2Label, style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            text = "${totals[1] ?: 0}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else {
+                    participantNames.forEachIndexed { index, name ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                            Text(
+                                text = (totals[index] ?: 0).toString(),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
