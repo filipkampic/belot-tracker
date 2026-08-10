@@ -18,8 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.outlined.Casino
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -41,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.Game
@@ -52,18 +51,14 @@ import com.roomie.belottracker.ui.viewmodel.HomeViewModel
 import com.roomie.belottracker.util.formatGameDate
 import com.roomie.belottracker.util.modeLabel
 
-@Preview(showBackground = false)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(onNewGameClick = {}, onHistoryClick = {}, onGameClick = {})
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNewGameClick: () -> Unit,
     onHistoryClick: () -> Unit,
     onGameClick: (Long) -> Unit,
+    isDarkTheme: Boolean,
+    onToggleTheme: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val recentGames by viewModel.recentGames.collectAsState()
@@ -75,6 +70,12 @@ fun HomeScreen(
                     Text("Belot Tracker", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                 },
                 actions = {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDarkTheme) "Svijetla tema" else "Tamna tema"
+                        )
+                    }
                     IconButton(onClick = onHistoryClick) {
                         Icon(
                             imageVector = Icons.Default.History,

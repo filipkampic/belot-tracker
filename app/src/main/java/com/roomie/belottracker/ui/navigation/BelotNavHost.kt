@@ -13,7 +13,10 @@ import com.roomie.belottracker.ui.screens.ScoringScreen
 import com.roomie.belottracker.ui.screens.WinnerScreen
 
 @Composable
-fun BelotNavHost() {
+fun BelotNavHost(
+    isDarkTheme: Boolean,
+    onToggleTheme: () -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
@@ -21,7 +24,9 @@ fun BelotNavHost() {
             HomeScreen(
                 onNewGameClick = { navController.navigate("new_game") },
                 onHistoryClick = { navController.navigate("history") },
-                onGameClick = { gameId -> navController.navigate("game/$gameId") }
+                onGameClick = { gameId -> navController.navigate("game/$gameId") },
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme
             )
         }
 
