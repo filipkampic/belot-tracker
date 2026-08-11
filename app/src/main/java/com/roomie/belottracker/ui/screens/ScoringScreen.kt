@@ -52,6 +52,7 @@ import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
 import com.roomie.belottracker.data.entities.Round
 import com.roomie.belottracker.data.entities.TrumpSuit
+import com.roomie.belottracker.ui.components.LoadingScreen
 import com.roomie.belottracker.ui.components.PrimaryButton
 import com.roomie.belottracker.ui.components.RoundRow
 import com.roomie.belottracker.ui.components.SuitPicker
@@ -70,6 +71,11 @@ fun ScoringScreen(
     viewModel: ScoringViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    if (state.isLoading) {
+        LoadingScreen()
+        return
+    }
 
     LaunchedEffect(Unit) {
         viewModel.navigateToWinner.collect { winnerIndex -> onWinner(gameId, winnerIndex) }

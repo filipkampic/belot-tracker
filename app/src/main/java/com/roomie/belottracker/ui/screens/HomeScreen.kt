@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.Game
 import com.roomie.belottracker.data.entities.GameMode
 import com.roomie.belottracker.data.entities.GameStatus
+import com.roomie.belottracker.ui.components.LoadingScreen
 import com.roomie.belottracker.ui.components.PrimaryButton
 import com.roomie.belottracker.ui.viewmodel.HomeViewModel
 import com.roomie.belottracker.util.formatGameDate
@@ -62,6 +63,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val recentGames by viewModel.recentGames.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Scaffold(
         topBar = {
@@ -98,7 +100,9 @@ fun HomeScreen(
             )
         }
     ) { padding ->
-        if (recentGames.isEmpty()) {
+        if (isLoading) {
+            LoadingScreen(modifier = Modifier.padding(padding))
+        } else if (recentGames.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

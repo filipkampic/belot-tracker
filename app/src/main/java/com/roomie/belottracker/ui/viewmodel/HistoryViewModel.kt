@@ -36,10 +36,14 @@ class HistoryViewModel @Inject constructor(
     private val _filteredGames = MutableStateFlow<List<Game>>(emptyList())
     val filteredGames: StateFlow<List<Game>> = _filteredGames.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     init {
         viewModelScope.launch {
             gameRepository.getGamesByStatus(GameStatus.FINISHED).collect { games ->
                 applyFilter(games, _selectedPlayerName.value)
+                _isLoading.value = false
             }
         }
     }

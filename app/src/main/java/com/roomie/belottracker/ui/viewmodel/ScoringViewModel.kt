@@ -28,6 +28,7 @@ data class ParticipantScoreInput(
 )
 
 data class ScoringUiState(
+    val isLoading: Boolean = true,
     val game: Game? = null,
     val participantNames: List<String> = emptyList(),
     val rounds: List<Round> = emptyList(),
@@ -58,6 +59,7 @@ class ScoringViewModel @Inject constructor(
     init { loadGame() }
 
     private fun loadGame() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             val game = gameRepository.getGameById(gameId) ?: return@launch
             val rounds = gameRepository.getRounds(gameId)
@@ -95,6 +97,7 @@ class ScoringViewModel @Inject constructor(
             val requiredInputsCount = if (game.mode == GameMode.TWO_V_TWO) 2 else game.participantNames.size
 
             _uiState.value = _uiState.value.copy(
+                isLoading = false,
                 game = game,
                 participantNames = game.participantNames,
                 rounds = rounds,

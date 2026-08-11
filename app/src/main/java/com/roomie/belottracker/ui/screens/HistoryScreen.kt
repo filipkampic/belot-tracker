@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.roomie.belottracker.data.entities.Game
+import com.roomie.belottracker.ui.components.LoadingScreen
 import com.roomie.belottracker.ui.viewmodel.HistoryViewModel
 import com.roomie.belottracker.util.formatGameDate
 import com.roomie.belottracker.util.modeLabel
@@ -35,6 +36,7 @@ fun HistoryScreen(
 ) {
     val games by viewModel.filteredGames.collectAsState()
     val players by viewModel.allPlayers.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val selectedPlayerName by viewModel.selectedPlayerName.collectAsState()
     val grouped = games.groupBy { formatGameDate(it.date) }
 
@@ -50,6 +52,11 @@ fun HistoryScreen(
             )
         }
     ) { padding ->
+        if (isLoading) {
+            LoadingScreen(modifier = Modifier.padding(padding))
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .padding(padding)

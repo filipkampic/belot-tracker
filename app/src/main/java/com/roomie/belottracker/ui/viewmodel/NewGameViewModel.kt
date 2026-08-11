@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class NewGameUiState(
+    val isLoading: Boolean = false,
     val mode: GameMode = GameMode.ONE_V_ONE,
     val targetScore: Int = 501,
     val useZvanjeBela: Boolean = false,

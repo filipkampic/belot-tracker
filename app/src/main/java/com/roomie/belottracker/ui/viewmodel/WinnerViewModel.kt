@@ -12,7 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class WinnerUiState(val winnerName: String, val finalScore: Int)
+data class WinnerUiState(
+    val isLoading: Boolean = true,
+    val winnerName: String,
+    val finalScore: Int,
+)
 
 @HiltViewModel
 class WinnerViewModel @Inject constructor(
@@ -34,6 +38,7 @@ class WinnerViewModel @Inject constructor(
             val finalScore = totals.values.maxOrNull() ?: 0
 
             _uiState.value = WinnerUiState(
+                isLoading = false,
                 winnerName = winnerName,
                 finalScore = finalScore
             )

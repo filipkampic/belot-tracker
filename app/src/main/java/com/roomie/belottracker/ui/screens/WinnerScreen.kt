@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.roomie.belottracker.ui.components.LoadingScreen
 
 @Composable
 fun WinnerScreen(
@@ -31,16 +32,19 @@ fun WinnerScreen(
     val state by viewModel.uiState.collectAsState()
     val scale = remember { Animatable(0.8f) }
 
+    if (state?.isLoading == true || state == null) {
+        LoadingScreen()
+        return
+    }
+
     LaunchedEffect(state) {
-        if (state != null) {
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
             )
-        }
+        )
     }
 
     Scaffold { padding ->
