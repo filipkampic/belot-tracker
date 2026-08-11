@@ -13,13 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.roomie.belottracker.ui.navigation.BelotNavHost
 import com.roomie.belottracker.ui.theme.BelotTrackerTheme
 import com.roomie.belottracker.util.ThemePreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -29,10 +32,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         themeManager = ThemePreferenceManager(applicationContext)
+
+        val initialDarkTheme = runBlocking {
+            themeManager.isDarkTheme.first()
+        }
+
+        installSplashScreen()
+
         enableEdgeToEdge()
 
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) }
+            var isDarkTheme by remember { mutableStateOf(initialDarkTheme) }
 
             LaunchedEffect(Unit) {
                 themeManager.isDarkTheme.collectLatest { isDarkTheme = it }
